@@ -1,4 +1,5 @@
 import os
+import requests
 from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
@@ -10,8 +11,8 @@ app = Flask(__name__)
 line_bot_api = LineBotApi(os.getenv('LINE_CHANNEL_ACCESS_TOKEN'))
 handler = WebhookHandler(os.getenv('LINE_CHANNEL_SECRET'))
 
-# LINE Notify Token
-line_notify_token = os.getenv('LINE_NOTIFY_TOKEN')
+# Google Apps Script URL
+APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyWRJ5zuSq66LxfS0AL80M7e7D5lBenbSKVNEGld8WffRa31KlOP_fQiyPaAo-nWDXA/exec"
 
 @app.route("/")
 def home():
@@ -39,9 +40,17 @@ def handle_message(event):
                 event.reply_token,
                 TextSendMessage(text="收到報表請求，處理中...")
             )
-            # TODO: 這裡之後會加入呼叫 Google Apps Script 的程式碼
             
+            # 呼叫 Google Apps Script
+            response = requests.post(APPS_SCRIPT_URL)
+            
+            if response.status_code == 200:
+                print("成功呼叫 Google Apps Script")
+            else:
+                print(f"呼叫失敗: {response.status_code}")
+                
         except Exception as e:
+            print(f"發生錯誤: {str(e)}")
             line_bot_api.reply_message(
                 event.reply_token,
                 TextSendMessage(text=f"發生錯誤: {str(e)}")
